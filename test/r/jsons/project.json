@@ -1,0 +1,134 @@
+{
+  "type": "project",
+  "name": "Project 1",
+  "order": 1,
+  "props": {
+    "show_menu": false
+  },
+  "records": {
+    "scene": {
+      "1684325255018": {
+        "type": "scene",
+        "name": "Zaphod",
+        "order": 1,
+        "props": {},
+        "records": {
+          "element": {
+            "1684392104132": {
+              "type": "element",
+              "name": "Cube",
+              "order": 2,
+              "props": {
+                "element_type": "cube"
+              }
+            },
+            "1684404927844": {
+              "type": "element",
+              "name": "Polygon",
+              "order": 3,
+              "props": {
+                "element_type": "polygon"
+              }
+            },
+            "1684404941443": {
+              "type": "element",
+              "name": "Pano Image",
+              "order": 1,
+              "props": {
+                "element_type": "pano_image"
+              }
+            }
+          },
+          "rule": {
+            "1684409406445": {
+              "name": "Rule the world",
+              "type": "rule",
+              "props": {
+                "tracked": false
+              },
+              "records": {
+                "when_event": {
+                  "1684409501169": {
+                    "type": "when_event",
+                    "props": {
+                      "co_id": 1684392104132,
+                      "event": "on_click",
+                      "co_type": "cube",
+                      "properties": []
+                    }
+                  }
+                },
+                "then_action": {
+                  "1684409594264": {
+                    "type": "then_action",
+                    "props": {
+                      "co_id":  1684404927844,
+                      "co_type": "polygon",
+                      "action": "toggle_showhide",
+                      "properties": []
+                    }
+                  }
+                }
+              }
+            },
+            "1684409406448": {
+              "name": "Rule the world (2)",
+              "type": "rule",
+              "props": {
+                "tracked": false
+              },
+              "records": {
+                "when_event": {
+                  "1684409501168": {
+                    "type": "when_event",
+                    "props": {
+                      "co_id": 1684392104132,
+                      "event": "on_click",
+                      "co_type": "cube",
+                      "properties": []
+                    }
+                  }
+                },
+                "then_action": {
+                  "1684409594263": {
+                    "type": "then_action",
+                    "props": {
+                      "co_id":  1684405505170,
+                      "co_type": "polygon",
+                      "action": "toggle_showhide",
+                      "properties": []
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }      
+      },
+      "1684405505170": {
+        "type": "scene",
+        "name": "Beeblebrox",
+        "order": 2,
+        "props": {}
+      }
+    },
+    "variable": {
+      "1684391315311": {
+        "type": "variable",
+        "name": "Score variable",
+        "order": 1,
+        "props": {
+          "var_type": "boolean"
+        }
+      },
+      "1684391763659": {
+        "type": "variable",
+        "name": "Media Upload variable",
+        "order": 2,
+        "props": {
+          "var_type": "string"
+        }
+      }
+    }
+  }
+}

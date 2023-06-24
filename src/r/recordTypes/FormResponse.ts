@@ -1,9 +1,11 @@
 export enum FormResponseProperty {
-  autotrack_connection = "autotrack_connection",
-  auto_add_new_scene_to_menu = "auto_add_new_scene_to_menu",
+  fresponse_tag = "fresponse_tag",
+  fresponse_type_selected = "fresponse_type_selected",
+  fresponse_content = "fresponse_content",
 }
 
 export const formResponsePropertyDefaults:  Record<FormResponseProperty, unknown> = {
-  [FormResponseProperty.autotrack_connection]: false,
-  [FormResponseProperty.auto_add_new_scene_to_menu]: false,
+  [FormResponseProperty.fresponse_tag]: "",
+  [FormResponseProperty.fresponse_type_selected]: "",
+  [FormResponseProperty.fresponse_content]: "",
 };

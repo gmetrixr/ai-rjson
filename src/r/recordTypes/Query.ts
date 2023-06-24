@@ -1,11 +1,11 @@
 export enum QueryProperty {
-  menu_scene_id = "menu_scene_id",
-  menu_show = "menu_show",
-  menu_display_name = "menu_display_name"
+  query_tag = "query_tag",
+  query_label = "query_label",
+  query_subquery = "query_subquery"
 }
 
 export const queryPropertyDefaults: Record<QueryProperty, unknown> = {
-  [QueryProperty.menu_scene_id]: 0,
-  [QueryProperty.menu_show]: true,
-  [QueryProperty.menu_display_name]: "",
+  [QueryProperty.query_tag]: "",
+  [QueryProperty.query_label]: "",
+  [QueryProperty.query_subquery]: "",
 }

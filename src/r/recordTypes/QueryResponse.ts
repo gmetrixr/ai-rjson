@@ -1,7 +1,11 @@
 export enum QueryResponseProperty {
-  tour_mode_scene_id = "tour_mode_scene_id",
+  qresponse_tag = "qresponse_tag",
+  qresponse_content = "qresponse_content",
+  qresponse_override = "qresponse_override",
 }
 
-export const tourModePropertyDefaults: Record<QueryResponseProperty, unknown> = {
-  [QueryResponseProperty.tour_mode_scene_id]: 0,
+export const queryResponsePropertyDefaults: Record<QueryResponseProperty, unknown> = {
+  [QueryResponseProperty.qresponse_tag]: "",
+  [QueryResponseProperty.qresponse_content]: "",
+  [QueryResponseProperty.qresponse_override]: "",
 }

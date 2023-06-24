@@ -1,6 +1,6 @@
 import { RecordNode, rtp, RT } from "../../../r/R";
 import { IOrder } from "../../IOrder";
-import { ProjectUtils } from "../../../r/recordFactories/ProjectFactory";
+import { ProjectUtils } from "../../../r/recordFactories/StrategyFactory";
 import { ProjectFactory } from "../../../r/recordFactories";
 
 class Migration implements IOrder {

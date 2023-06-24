@@ -1,6 +1,6 @@
 import { createRecord, RecordNode, RT, sn } from "../../../r";
 import { IOrder } from "../../IOrder";
-import { ProjectUtils } from "../../../r/recordFactories/ProjectFactory";
+import { ProjectUtils } from "../../../r/recordFactories/StrategyFactory";
 import { jsUtils } from "@gmetrixr/gdash";
 
 const { generateIdV2 } = jsUtils;

@@ -1,8 +1,8 @@
 /** 
  * Exposing Custorm Factory Types through RF.*
  */
-import { ProjectFactory } from "./ProjectFactory";
+import { StrategyFactory } from "./StrategyFactory";
 
 export {
-  ProjectFactory,
+  StrategyFactory,
 };

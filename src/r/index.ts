@@ -3,7 +3,7 @@ import { RecordNode, RecordMap, RT, RTP, rtp, createRecord, ClipboardData, idAnd
 import { RecordUtils } from "./R/RecordFactory";
 import { ProjectFactory } from "./recordFactories/ProjectFactory";
 import * as RF from "./recordFactories";
-import { en, sn, vn, rn, pn, fn, CogObjectType } from "./definitions";
+import { ai } from "./definitions";
 
 /**
  * Use r.record(json) for all RecordNode type objects, except the below ones
@@ -32,5 +32,5 @@ export {
   R, r, RF, rUtils,
   //Exporting most used classes/types directly
   RecordNode, RecordMap, RT, RTP, rtp, createRecord, getFactory, ClipboardData, idAndRecord,
-  en, sn, vn, rn, pn, fn, CogObjectType
+  ai
 }

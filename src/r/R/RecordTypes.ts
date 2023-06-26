@@ -1,8 +1,7 @@
 import { StrategyProperty, strategyPropertyDefaults } from "../recordTypes/Strategy";
 import { FormProperty, formPropertyDefaults } from "../recordTypes/Form";
-import { FormResponseProperty, formResponsePropertyDefaults } from "../recordTypes/FormResponse";
+import { ReplacementMapProperty, replacementMapPropertyDefaults } from "../recordTypes/ReplacementMap";
 import { QueryProperty, queryPropertyDefaults } from "../recordTypes/Query";
-import { QueryResponseProperty, queryResponsePropertyDefaults } from "../recordTypes/QueryResponse";
 
 //https://stackoverflow.com/a/54178819/1233476
 // type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
@@ -14,9 +13,8 @@ export const SINGLE_RECORD_ID = 1;
 export enum RT {
   "strategy" = "strategy",
   "form" = "form",
-  "form_response" = "form_response",
   "query" = "query",
-  "query_response" = "query_response",
+  "replacement_map" = "replacement_map",
 }
 
 /**
@@ -30,9 +28,8 @@ export function isRecordType(type: string): type is RT {
 export const rtHeirarchyTree = {
   "strategy": {
     "form": {},
-    "form_response": {},
     "query": {},
-    "query_response": {},
+    "replacement_map": {},
   },
 }
 
@@ -43,9 +40,8 @@ export const rtHeirarchyTree = {
 export interface RTP {
   [RT.strategy]: StrategyProperty,
   [RT.form]: FormProperty,
-  [RT.form_response]: FormResponseProperty,
   [RT.query]: QueryProperty,
-  [RT.query_response]: QueryResponseProperty,
+  [RT.replacement_map]: ReplacementMapProperty,
 }
 
 /**
@@ -55,9 +51,8 @@ export interface RTP {
 export const rtp = {
   [RT.strategy]: StrategyProperty,
   [RT.form]: FormProperty,
-  [RT.form_response]: FormResponseProperty,
   [RT.query]: QueryProperty,
-  [RT.query_response]: QueryResponseProperty,
+  [RT.replacement_map]: ReplacementMapProperty,
 }
 
 /**
@@ -90,22 +85,16 @@ export const recordTypeDefinitions: Record<RT, RTDefinition> = {
     defaultValues: formPropertyDefaults
     //doesn't use name, so not defining defaultName
   },
-  [RT.form_response]: { 
-    treeRef: rtHeirarchyTree.strategy.form_response,
-    typesInRootPath: [RT.strategy],
-    defaultValues: formResponsePropertyDefaults
-    //doesn't use name, so not defining defaultName
-  },
   [RT.query]: { 
     treeRef: rtHeirarchyTree.strategy.query,
     typesInRootPath: [RT.strategy],
     defaultValues: queryPropertyDefaults
     //doesn't use name, so not defining defaultName
   },
-  [RT.query_response]: { 
-    treeRef: rtHeirarchyTree.strategy.query_response,
+  [RT.replacement_map]: { 
+    treeRef: rtHeirarchyTree.strategy.replacement_map,
     typesInRootPath: [RT.strategy],
-    defaultValues: queryResponsePropertyDefaults
+    defaultValues: replacementMapPropertyDefaults
     //doesn't use name, so not defining defaultName
   },
 }

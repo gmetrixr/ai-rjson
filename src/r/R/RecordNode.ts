@@ -43,4 +43,3 @@ export type idOrAddress = number | string;
 export interface ClipboardData {
   nodes: idAndRecord<RT>[]
 }
-

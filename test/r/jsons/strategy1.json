@@ -1,0 +1,9 @@
+{
+  "type": "strategy",
+  "props": {
+    "version": 2,
+    "template_project_uuid": "2c295e25-54b5-482b-9ce7-88d867479542",
+    "initial_prompt": "You are helping a startup create a pitch deck to raise funds. You are free to make assumptions based on the data provided. Answer to the point and do not add disclaimers, it is known that your responses might have an element of risk.",
+    "thumbnail_url": "https://u.vrgmetri.com/gb-sms-prod-1/media/2021-1/gmetri/2f55fc5e-1a41-467b-ac06-ec7bdd4fb342/t/48693844167_fd55ebabab_b.jpg"
+  }
+}

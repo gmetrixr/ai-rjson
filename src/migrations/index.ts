@@ -1,7 +1,7 @@
-import { createNewProject, migrateProject, getHighestProjectVersion, runHealthCheckMigrations } from "./project";
+import { createNewStrategy, getHighestStrategyVersion, migrateStrategy } from "./strategy";
 
 const migrations = {
-  createNewProject, migrateProject, getHighestProjectVersion, runHealthCheckMigrations
+  createNewStrategy, getHighestStrategyVersion, migrateStrategy
 }
 
 export { migrations };

@@ -1,34 +1,22 @@
 import { expect } from "chai";
-import { createNewDeployment, migrateDeployment } from "../../src/migrations/deployment/index";
-import { migrateProject } from "./../../src/migrations/project";
-import { migrateDiscussion } from "./../../src/migrations/discussion";
-import { RT } from "../../src/r/R";
+import { createNewStrategy, migrateStrategy } from "../../src/migrations/strategy/index";
+import { RT, rtp } from "../../src/r/R";
 import fs from "fs";
-import deploymentJson from "./jsons/deployment.json";
-import oldProjectJson from "./jsons/oldProject.json";
-import newtonStoreJson from "./jsons/newtonStore.json";
-import manishMalhotraJson from "./jsons/manishMalhotra.json";
-import deleteRecordsLinkedToIdJson from "./jsons/deleteRecordsLinkedToId.json";
-import threeScenesJson from "./jsons/threeScenes.json";
-import discussionJson from "./jsons/discussion.json";
-import myMetaverseJson from "./jsons/myMetaverse.json";
+import { StrategyFactory } from "../../src/r/recordFactories";
 
 describe ("r Migration tests", () => {
-  it ("should create new deployment", () => {
-    const deployment = createNewDeployment();
-    expect(deployment.type).to.be.equal(RT.deployment);
+  it ("should create new strategy", () => {
+    const strategy = createNewStrategy();
+    expect(strategy.type).to.be.equal(RT.strategy);
   });
 
-  xit ("migrate elements", function () {
-    this.timeout(30000);
-    fs.writeFileSync("./test/r/jsons/r3fJsons/deployment/deployment.json", JSON.stringify(migrateDeployment(deploymentJson)));
-    fs.writeFileSync("./test/r/jsons/r3fJsons/project/newton.json", JSON.stringify(migrateProject(newtonStoreJson)));
-    fs.writeFileSync("./test/r/jsons/r3fJsons/project/manish.json", JSON.stringify(migrateProject(manishMalhotraJson)));
-    fs.writeFileSync("./test/r/jsons/r3fJsons/project/old.json", JSON.stringify(migrateProject(oldProjectJson)));
-    fs.writeFileSync("./test/r/jsons/r3fJsons/project/deleteRecordsLinkedToId.json", JSON.stringify(migrateProject(deleteRecordsLinkedToIdJson)));
-    fs.writeFileSync("./test/r/jsons/r3fJsons/project/threeScenesJson.json", JSON.stringify(migrateProject(threeScenesJson)));
-    fs.writeFileSync("./test/r/jsons/r3fJsons/project/myMetaverse.json", JSON.stringify(migrateDiscussion(myMetaverseJson)));
-    fs.writeFileSync("./test/r/jsons/r3fJsons/discussion/discussion.json", JSON.stringify(migrateDiscussion(discussionJson)));
-    expect(true).to.be.true;
+  it ("should create new strategy 2", () => {
+    const strategyJson = createNewStrategy();
+    const sf = new StrategyFactory(strategyJson);
+    sf.set(rtp.strategy.template_project_uuid, "2c295e25-54b5-482b-9ce7-88d867479542");
+    sf.set(rtp.strategy.initial_prompt, "You are helping a startup create a pitch deck to raise funds. You are free to make assumptions based on the data provided. Answer to the point and do not add disclaimers, it is known that your responses might have an element of risk.");
+    sf.set(rtp.strategy.thumbnail_url, "https://u.vrgmetri.com/gb-sms-prod-1/media/2021-1/gmetri/2f55fc5e-1a41-467b-ac06-ec7bdd4fb342/t/48693844167_fd55ebabab_b.jpg");
+
+    // fs.writeFileSync("./test/r/jsons/strategy1.json", JSON.stringify(migrateStrategy(strategyJson)));
   });
 });

@@ -1,0 +1,184 @@
+{
+  "type": "strategy",
+  "props": {
+    "version": 2,
+    "template_project_uuid": "2c295e25-54b5-482b-9ce7-88d867479542",
+    "initial_prompt": "You are helping a startup create a pitch deck to raise funds. You are free to make assumptions based on the data provided. Answer to the point and do not add disclaimers, it is known that your responses might have an element of risk.",
+    "thumbnail_url": "https://u.vrgmetri.com/gb-sms-prod-1/media/2021-1/gmetri/2f55fc5e-1a41-467b-ac06-ec7bdd4fb342/t/48693844167_fd55ebabab_b.jpg"
+  },
+  "records": {
+    "form": {
+      "6888130779601183": {
+        "type": "form",
+        "props": {
+          "form_tag": "comp_url",
+          "form_label": "What is the startup URL?",
+          "form_types_allowed": [
+            "url"
+          ],
+          "form_required": true,
+          "form_train": true
+        },
+        "order": 1
+      },
+      "4166821292468493": {
+        "type": "form",
+        "props": {
+          "form_tag": "comp_deck",
+          "form_label": "Upload your current pitch deck, if any.",
+          "form_types_allowed": [
+            "pdf"
+          ],
+          "form_required": false,
+          "form_train": true
+        },
+        "order": 2
+      },
+      "6359530395797376": {
+        "type": "form",
+        "props": {
+          "form_tag": "comp_pricing",
+          "form_label": "Pricing page, if any.",
+          "form_types_allowed": [
+            "url"
+          ],
+          "form_required": false,
+          "form_train": false
+        },
+        "order": 3
+      },
+      "9978174584575700": {
+        "type": "form",
+        "props": {
+          "form_tag": "funding_01",
+          "form_label": "How much funding do you seek in (USD million)?",
+          "form_types_allowed": [
+            "short_text"
+          ],
+          "form_required": true,
+          "form_train": true
+        },
+        "order": 4
+      },
+      "3672789277393205": {
+        "type": "form",
+        "props": {
+          "form_tag": "accent",
+          "form_label": "What is the startup's primary color accent?",
+          "form_types_allowed": [
+            "color"
+          ],
+          "form_required": true,
+          "form_train": false
+        },
+        "order": 5
+      },
+      "5007500033558545": {
+        "type": "form",
+        "props": {
+          "form_tag": "team_02",
+          "form_label": "Name of Key Member #1",
+          "form_types_allowed": [
+            "short_text"
+          ],
+          "form_required": true,
+          "form_train": false
+        },
+        "order": 6
+      },
+      "8204499182194065": {
+        "type": "form",
+        "props": {
+          "form_tag": "team_12",
+          "form_label": "Short Bio of Key Member #1",
+          "form_types_allowed": [
+            "long_text"
+          ],
+          "form_required": true,
+          "form_train": false
+        },
+        "order": 7
+      }
+    },
+    "query": {
+      "7872457318842387": {
+        "type": "query",
+        "props": {
+          "query_tag": "in1sentence",
+          "query_label": "Describe your startup in 50 characters or less.",
+          "query_subquery": "Describe your startup in 50 characters or less."
+        },
+        "order": 1
+      },
+      "9350699299306912": {
+        "type": "query",
+        "props": {
+          "query_tag": "problem",
+          "query_label": "What problem or pain point are you solving?",
+          "query_subquery": "What problem or pain point does the startup solve?"
+        },
+        "order": 2
+      },
+      "8697108337867306": {
+        "type": "query",
+        "props": {
+          "query_tag": "market_01",
+          "query_label": "TAM, or Total Addressable Market (USD Million)",
+          "query_subquery": "Estimate the TAM in USD million. Just respond with the number."
+        },
+        "order": 3
+      },
+      "5734261662151033": {
+        "type": "query",
+        "props": {
+          "query_tag": "opportunity",
+          "query_label": "What are the key market trends or factors that make it an attractive opportunity?",
+          "query_subquery": "What are the key market trends or factors that make it an attractive opportunity? Give 3 bullet points."
+        },
+        "order": 4
+      }
+    },
+    "replacement_map": {
+      "1806832388039911": {
+        "type": "replacement_map",
+        "props": {
+          "source_tag": "funding_01",
+          "destination_address": "project:1|scene:1|element:1>text"
+        },
+        "order": 1
+      },
+      "2094697003851328": {
+        "type": "replacement_map",
+        "props": {
+          "source_tag": "team_02",
+          "destination_address": "project:1|scene:1|element:2>text"
+        },
+        "order": 2
+      },
+      "2462707416457278": {
+        "type": "replacement_map",
+        "props": {
+          "source_tag": "team_12",
+          "destination_address": "project:1|scene:1|element:3>text"
+        },
+        "order": 3
+      },
+      "1061758631507653": {
+        "type": "replacement_map",
+        "props": {
+          "source_tag": "team_12",
+          "destination_address": "project:1|scene:1|element:3>color"
+        },
+        "order": 4
+      },
+      "5757499236306658": {
+        "type": "replacement_map",
+        "props": {
+          "source_tag": "accent",
+          "destination_address": "project:1|scene:1|element:4>color"
+        },
+        "order": 5
+      }
+    }
+  }
+}

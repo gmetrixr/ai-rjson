@@ -581,9 +581,9 @@ export class RecordFactory<T extends RT> {
    * And all sub-ids in this new record. 
    * And make sure none overlap.
    */
-  addRecord({record, position, id, dontCycleSubRecordIds, parentIdOrAddress}: {
-    record: RecordNode<RT>, position?: number, id?: number, dontCycleSubRecordIds?: boolean, parentIdOrAddress?: idOrAddress
-  }): idAndRecord<RT> | undefined {
+  addRecord<T extends RT>({record, position, id, dontCycleSubRecordIds, parentIdOrAddress}: {
+    record: RecordNode<T>, position?: number, id?: number, dontCycleSubRecordIds?: boolean, parentIdOrAddress?: idOrAddress
+  }): idAndRecord<T> | undefined {
     //Call recursively until "this" refers to parent record, and parentIdOrAddress is undefined
     if(parentIdOrAddress !== undefined) {
       const parentRecord = this.getDeepRecord(parentIdOrAddress);
@@ -616,9 +616,9 @@ export class RecordFactory<T extends RT> {
     return {id, record};
   }
 
-  addBlankRecord<T>({type, position, id, parentIdOrAddress}: {
-    type: RT, position?: number, id?: number, parentIdOrAddress?: idOrAddress
-  }): idAndRecord<RT> | undefined {
+  addBlankRecord<T extends RT>({type, position, id, parentIdOrAddress}: {
+    type: T, position?: number, id?: number, parentIdOrAddress?: idOrAddress
+  }): idAndRecord<T> | undefined {
     const record = createRecord(type);
     return this.addRecord({record, position, id, parentIdOrAddress});
   }

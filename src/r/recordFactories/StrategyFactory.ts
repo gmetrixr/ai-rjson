@@ -24,9 +24,9 @@ export class StrategyFactory extends RecordFactory<RT.strategy> {
 
   /** get array of destination addresses for every tag */
   getReplacementMap(): Record<string, string[]> {
-    const replaementMapEntries = this.getSortedRecordEntries(RT.replacement_map);
+    const replacementMapEntries = this.getSortedRecordEntries(RT.replacement_map);
     const replacementMap: Record<string, string[]> = {};
-    for(const [rmId, rm] of replaementMapEntries) {
+    for(const [rmId, rm] of replacementMapEntries) {
       const tag = rm.props.source_tag;
       const destinationAddress = rm.props.destination_address;
 

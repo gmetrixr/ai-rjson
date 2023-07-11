@@ -12,3 +12,8 @@ export enum DocumentTypes {
   jpg = "jpg",
   mp3 = "mp3",
 }
+
+export enum Games {
+  word_puzzle = "word_puzzle",
+  squid_games = "squid_games"
+}

@@ -262,7 +262,7 @@ export class RecordFactory<T extends RT> {
   }
 
   /** ORDERED entries of id, records. Returns ids as strings. */
-  getSortedRecordEntries(type: RT): [number, RecordNode<RT>][] {
+  getSortedRecordEntries<N extends RT>(type: N): [number, RecordNode<N>][] {
     return RecordUtils.getSortedRecordEntries(this.getRecordMap(type));
   }
 

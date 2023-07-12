@@ -6,6 +6,20 @@ const { deepClone, generateIdV2 } = jsUtils;
 const { getSafeAndUniqueRecordName } = stringUtils;
 
 /**
+ * If record.orders come this close, it is time to reset all orders
+ * Number.MIN_VALUE * 10E3   (~ 320 zeros after decimal)
+ * 
+ * JSON.stringify loses precision after 15 digits
+ * console.log(JSON.stringify({a: 1.123456789123456789123456789})); --> '{"a":1.1234567891234568}'
+ * 
+ * So we limit MIN_SAFE_ORDER_DISTANCE to 10E-15
+ * 
+ * However, 15 includes digits before and after decimal point. So we randomly choose 7.
+ * At 10 million records, order will start failing.
+ */
+const MIN_SAFE_ORDER_DISTANCE = 10E-7; //Number.MIN_VALUE * 10E3
+
+/**
  * A convenient Factory class to maninpulate a RecordNode object of any type
  * This class can be extended to provide any recordType specific funcitonality
  *
@@ -49,7 +63,7 @@ const { getSafeAndUniqueRecordName } = stringUtils;
  * getSortedRecordEntries / getSortedRecordIds / getSortedRecords
  * 
  *! ADDRESS RELATED
- * getAddress -> Get address of a subnode (with optional property suffix)
+ * getAddress / getDeepAddress -> Get address of a subnode (with optional property suffix)
  * getPropertyAtAddress / updatePropertyAtAddress
  * $ private getRecordAndParentWithId / getRecordAndParentWithAddress
  * getRecordAndParent -> Find record and its parent with either id or address
@@ -262,7 +276,7 @@ export class RecordFactory<T extends RT> {
   }
 
   /** ORDERED entries of id, records. Returns ids as strings. */
-  getSortedRecordEntries<N extends RT>(type: N): [number, RecordNode<N>][] {
+  getSortedRecordEntries(type: RT): [number, RecordNode<RT>][] {
     return RecordUtils.getSortedRecordEntries(this.getRecordMap(type));
   }
 
@@ -283,6 +297,8 @@ export class RecordFactory<T extends RT> {
    * Eg 2. scene:1|element:2!wh>1
    * If property is given, it adds property suffix
    * If selfAddr is given (from root), it prefixes that to the address, otherwise returns a partial child address
+   * 
+   * property needs to a prop of the be same RT.type as "type" argument
    */
   getAddress<N extends RT>({id, type, selfAddr, property, index}: {
     id: number, type?: N, selfAddr?: string, property?: RTP[T], index?: number
@@ -292,10 +308,38 @@ export class RecordFactory<T extends RT> {
     if(record === undefined) return "";
     //If type isn't given, get the type from the record
     if(!type) { type = <N> record.type; }
-    //Get record address
     const childPartialAddress = `${type}:${id}`;
+    
+    //Get full address including property and selfAddress
     let address = selfAddr ? `${selfAddr}|${childPartialAddress}`: childPartialAddress;
-    //If property is given, append that
+    if(property) {
+      const propertySuffix = (typeof index === "number") ? `${property}>${index}` : `${property}`
+      address = `${address}!${propertySuffix}`;
+    }
+    return address;
+  }
+
+  /**
+   * property can be a prop of any RT.type
+   * (That's why we use RTP[N] and not RTP[T] (T is the type used in this class, N is any type within RT))
+   */
+  getDeepAddress<N extends RT>({id, selfAddr, property, index}: {
+    id: number, selfAddr?: string, property?: RTP[N], index?: number
+  }): string {
+    const breadCrumbsArray = this.getBreadCrumbsWithId(id);
+
+    //If record isn't present, return;
+    if(breadCrumbsArray === undefined || breadCrumbsArray.length === 0) return "";
+
+    let childPartialAddress = "";
+
+    for (let i = 0; i < breadCrumbsArray.length; i++) {
+      const {id: crumbId, record: crumbRecord} = breadCrumbsArray[i];
+      childPartialAddress += `${crumbRecord.type}:${crumbId}${(i < breadCrumbsArray.length - 1) ? "|" : ""}`;
+    }
+
+    //Get full address including property and selfAddress
+    let address = selfAddr ? `${selfAddr}|${childPartialAddress}`: childPartialAddress;
     if(property) {
       const propertySuffix = (typeof index === "number") ? `${property}>${index}` : `${property}`
       address = `${address}!${propertySuffix}`;
@@ -522,24 +566,25 @@ export class RecordFactory<T extends RT> {
    * if its inserted at [x], order = ( order of [x - 1] entry + order of [x] entry ) / 2 
    */
   private getNewOrders(sortedRecords: RecordNode<T>[], newRecordsCount: number, position?: number): number[] {
+    this.ensureMinDistanceOfOrders(sortedRecords);
     const order = [];
     let minOrder = sortedRecords[0]?.order ?? 0;
     let maxOrder = sortedRecords[sortedRecords.length - 1]?.order ?? 0;
-    if(sortedRecords.length === 0) { //return [1, 2, 3 ...]
+    if(sortedRecords.length === 0) { //return [1, 2, 3 ...] //these are the first records being inserted
       for(let i=0; i<newRecordsCount; i++) {
         order[i] = i+1;
       }
-    } else if(position === 0) {
+    } else if(position === 0) { //insert at beginning
       for(let i=0; i<newRecordsCount; i++) {
         minOrder = minOrder-1;
         order[i] = minOrder;
       }
-    } else if(position === sortedRecords.length || position === undefined) {
+    } else if(position === sortedRecords.length || position === undefined) { //insert at end
       for(let i=0; i<newRecordsCount; i++) {
         maxOrder = maxOrder+1;
         order[i] = maxOrder;
       }
-    } else {
+    } else { //insert somewhere in the middle
       const prevOrder = sortedRecords[position - 1].order ?? 0;
       const nextOrder = sortedRecords[position].order ?? 0;
       let segment = 0;
@@ -549,6 +594,27 @@ export class RecordFactory<T extends RT> {
       }
     }
     return order;
+  }
+
+  /** 
+   * In case the difference in order gets dangerously close the JS's Number.MIN_VALUE, reset orders
+   * The second argument is optional, and provided only for testing
+   */
+  private ensureMinDistanceOfOrders(sortedRecords: RecordNode<T>[], minSafeOrderDistanceOverride = MIN_SAFE_ORDER_DISTANCE): void {
+    //Applicable only if number of records > 2
+    if(sortedRecords.length <= 2) return;
+    //Get the minimum distance between two order - orders are sorted, so we always do a(n) - a(n-1)
+    for(let i=1; i<sortedRecords.length; i++) { //starting at index 1. n-1 subtractions.
+      //ensureOrderKeyPresentOfType is already called in getSortedEntries. So we are sure record(n).order always exists.
+      const currentDistance = <number>sortedRecords[i].order - <number>sortedRecords[i-1].order;
+      if(currentDistance < minSafeOrderDistanceOverride) {
+        let order = 1;
+        for(const r of sortedRecords) {
+          r.order = order++;
+        }
+        return;
+      }
+    }
   }
 
   private initializeRecordMap(type:RT): boolean {
@@ -581,9 +647,9 @@ export class RecordFactory<T extends RT> {
    * And all sub-ids in this new record. 
    * And make sure none overlap.
    */
-  addRecord<T extends RT>({record, position, id, dontCycleSubRecordIds, parentIdOrAddress}: {
-    record: RecordNode<T>, position?: number, id?: number, dontCycleSubRecordIds?: boolean, parentIdOrAddress?: idOrAddress
-  }): idAndRecord<T> | undefined {
+  addRecord({record, position, id, dontCycleSubRecordIds, parentIdOrAddress}: {
+    record: RecordNode<RT>, position?: number, id?: number, dontCycleSubRecordIds?: boolean, parentIdOrAddress?: idOrAddress
+  }): idAndRecord<RT> | undefined {
     //Call recursively until "this" refers to parent record, and parentIdOrAddress is undefined
     if(parentIdOrAddress !== undefined) {
       const parentRecord = this.getDeepRecord(parentIdOrAddress);
@@ -616,9 +682,9 @@ export class RecordFactory<T extends RT> {
     return {id, record};
   }
 
-  addBlankRecord<T extends RT>({type, position, id, parentIdOrAddress}: {
-    type: T, position?: number, id?: number, parentIdOrAddress?: idOrAddress
-  }): idAndRecord<T> | undefined {
+  addBlankRecord<T>({type, position, id, parentIdOrAddress}: {
+    type: RT, position?: number, id?: number, parentIdOrAddress?: idOrAddress
+  }): idAndRecord<RT> | undefined {
     const record = createRecord(type);
     return this.addRecord({record, position, id, parentIdOrAddress});
   }

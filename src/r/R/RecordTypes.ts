@@ -3,6 +3,7 @@ import { FormProperty, formPropertyDefaults } from "../recordTypes/Form";
 import { ReplacementMapProperty, replacementMapPropertyDefaults } from "../recordTypes/ReplacementMap";
 import { QueryProperty, queryPropertyDefaults } from "../recordTypes/Query";
 import { GameProperty, gamePropertyDefaults } from "../recordTypes/Game";
+import { CharacterProperty, characterPropertyDefaults } from "../recordTypes/Character";
 
 //https://stackoverflow.com/a/54178819/1233476
 // type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
@@ -17,6 +18,7 @@ export enum RT {
   "query" = "query",
   "replacement_map" = "replacement_map",
   "game" = "game",
+  "character" = "character"
 }
 
 /**
@@ -32,7 +34,8 @@ export const rtHeirarchyTree = {
     "form": {},
     "query": {},
     "replacement_map": {},
-    "game": {}
+    "game": {},
+    "character": {}
   },
 }
 
@@ -46,6 +49,7 @@ export interface RTP {
   [RT.query]: QueryProperty,
   [RT.replacement_map]: ReplacementMapProperty,
   [RT.game]: GameProperty,
+  [RT.character]: CharacterProperty,
 }
 
 /**
@@ -58,6 +62,7 @@ export const rtp = {
   [RT.query]: QueryProperty,
   [RT.replacement_map]: ReplacementMapProperty,
   [RT.game]: GameProperty,
+  [RT.character]: CharacterProperty
 }
 
 /**
@@ -106,6 +111,12 @@ export const recordTypeDefinitions: Record<RT, RTDefinition> = {
     treeRef: rtHeirarchyTree.strategy.game,
     typesInRootPath: [RT.game],
     defaultValues: gamePropertyDefaults
+    //doesn't use name, so not defining defaultName
+  },
+  [RT.character]: {
+    treeRef: rtHeirarchyTree.strategy.character,
+    typesInRootPath: [RT.character],
+    defaultValues: characterPropertyDefaults
     //doesn't use name, so not defining defaultName
   },
 }

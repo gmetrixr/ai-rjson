@@ -48,7 +48,7 @@ const MIN_SAFE_ORDER_DISTANCE = 10E-7; //Number.MIN_VALUE * 10E3
  * 
  *! PROPS
  * json / getName -> return full json / return name
- * getProps/getAllPossibleProps/getAllPropValues -> what this json has/what this json can have (based on type)
+ * getProps/getAllPossibleProps -> what this json has/what this json can have (based on type)
  * get/set/reset/delete/getValueOrDefault/getDefault -> prop's values
  * changePropertyName -> used during migrations
  * 
@@ -56,12 +56,11 @@ const MIN_SAFE_ORDER_DISTANCE = 10E-7; //Number.MIN_VALUE * 10E3
  * getRecordTypes -> list of subrecord types ["scene", "variable"]
  * getRecord / getIdAndRecord / getDeepRecord / getDeepIdAndRecord -> get subrecord of any type (level 1), faster if type is passed / deepRecord using idOrAddress
  * getRecordMap / getRecordEntries / getRecords / getRecordIds -> recordMap of one type (all types when type isn't passed) - lvl 1 records
- * getDeepRecordMap / getDeepRecordEntries / RecordUtils.getDeepRecordAndParentArray
+ * getDeepRecordMap / getDeepRecordEntries
  * 
  *! SORTED RECORDS (FOR UI)
  *   Sorting only makes sense in a single type (eg: you wont sort variables & scenes)
  * getSortedRecordEntries / getSortedRecordIds / getSortedRecords
- * getSortedDFSRecordEntriesInternal
  * 
  *! ADDRESS RELATED
  * getAddress / getDeepAddress -> Get address of a subnode (with optional property suffix)
@@ -73,7 +72,8 @@ const MIN_SAFE_ORDER_DISTANCE = 10E-7; //Number.MIN_VALUE * 10E3
  * 
  *! RECORD RELATED
  * getLinkedSubRecords -> Get records that are linked to another record via any prop
- * cycleAllSubRecordIds  / changeRecordIdInProperties -> Updates ids and their references in the tree
+ * changeDeepRecordId / changePropertiesMatchingValue -> Updates all references to a recordId in the tree and in properties
+ * cycleAllSubRecordIds -> Changes all ids
  * $ private getNewOrders / initializeRecordMap
  * addRecord / addBlankRecord
  * duplicateRecord     / deleteRecord     / changeRecordName
@@ -209,24 +209,6 @@ export class RecordFactory<T extends RT> {
 
   getRecordIds<N extends RT>(type?: N): number[] {
     return RecordUtils.getRecordIds(this.getRecordMap(type));
-  }
-
-  private getSortedDFSRecordEntriesInternal<N extends RT>(type: N, recordEntries?: [number, RecordNode<RT>][]): [number, RecordNode<RT>][] {
-    if(recordEntries === undefined) recordEntries = [];
-    const recordEntriesOfType = this.getSortedRecordEntries(type);
-    for (const record of recordEntriesOfType) {
-      recordEntries.push(record);
-      new RecordFactory(record[1]).getSortedDFSRecordEntriesInternal(type, recordEntries);
-    }
-    return recordEntries;
-  }
-
-  /**
-   * A Pure DFS of the tree
-   * An array that goes depth first, then breadth
-   */
-  getSortedDFSRecordEntries<N extends RT>(type: N): [number, RecordNode<N>][] {
-    return this.getSortedDFSRecordEntriesInternal(type);
   }
 
   private getDeepRecordMapInternal(recordMap?: RecordMapGeneric): RecordMapGeneric {
@@ -389,7 +371,6 @@ export class RecordFactory<T extends RT> {
    * 4. scene:1|element:2!wh>1
    */
   private getRecordAndParentWithAddress(addr: string): rAndP | undefined {
-    if(addr === null || addr === undefined) return undefined;
     // Sanitize and remove and unwanted cases
     // Replace everything after a ! with a blank string
     const recordStringArray = addr.replace(/!.*/, "").split("|"); // [scene:1, element:2]
@@ -440,7 +421,6 @@ export class RecordFactory<T extends RT> {
   }
 
   private getBreadCrumbsWithAddress(addr: string): idAndRecord<RT>[] | undefined {
-    if(addr === null || addr === undefined) return undefined;
     const breadCrumbs: idAndRecord<RT>[] = []
     // Sanitize and remove and unwanted cases
     // Replace everything after a ! with a blank string
@@ -523,93 +503,115 @@ export class RecordFactory<T extends RT> {
     return matchedIdsAndRecords;
   }
 
+
   /** 
-   * When we cycle record ids, all their references in the props of other records also need
-   * to be updated. This function takes a replacementMap, and using that ensure that for "this"
-   * record all props are updated
+   * Updates all references to an older value in a tree to a newer one
+   * Used for updating references to any recordId that's changing 
    */
-  changeRecordIdInProperties(replacementMap: {[oldId: number]: number}): boolean {
-    let changed = false;
-    for(const prop of Object.keys(this._json.props)) {
-      const currentValue = this._json.props[(prop as RTP[T])];
-      if(Array.isArray(currentValue)) {
-        for(let i = 0; i < currentValue.length; i++) {
-          if(Number(currentValue[i]) in replacementMap) {
-            const oldId = Number(currentValue[i]);
-            const newId = replacementMap[oldId];
-            currentValue[i] = newId;
-            changed = true;
-          }
-        }
-      } else if(typeof currentValue === "number") {
-        if(currentValue in replacementMap) {
-          this._json.props[(prop as RTP[T])] = replacementMap[currentValue];
-          changed = true;
-        }
-      } else if(typeof currentValue === "string") {
-        if(Number(currentValue) in replacementMap) {
-          this._json.props[(prop as RTP[T])] = replacementMap[Number(currentValue)];
-          changed = true;
+  changeDeepRecordIdInProperties(oldId: number, newId: number): boolean {
+    const linkedIdAndRecords = this.getLinkedSubRecords(oldId);
+    for(const idAndRecord of linkedIdAndRecords) {
+      const record = idAndRecord.record;
+      for(const prop of Object.keys(record.props)) {
+        const currentValue = Number(record.props[(prop as RTP[T])]);
+        if(currentValue === oldId) {
+          (record.props as any)[prop] = newId;
         }
       }
     }
-    return changed;
+    return true;
   }
 
-  getAllPropValues(): Array<unknown> {
-    const values: Array<unknown> = [];
-    for(const prop of Object.keys(this._json.props)) {
-      const currentValue = this._json.props[(prop as RTP[T])];
-      if(Array.isArray(currentValue)) {
-        values.push(...currentValue);
-      } else if(typeof currentValue === "number") {
-        values.push(currentValue);
-      } else if(typeof currentValue === "string") {
-        values.push(currentValue);
-      }
+  changeDeepRecordId(oldId: number, newId: number): boolean {
+    const rAndP = this.getRecordAndParentWithId(oldId);
+    if(rAndP) {
+      const parent = rAndP.p;
+      const type = rAndP.r.type as RT;
+      //We need recordMap per record type so that updates work 
+      //only typed recordMaps give us direct json references
+      const recordMapOfType = new RecordFactory(parent).getRecordMap(type);
+      recordMapOfType[newId] = recordMapOfType[oldId];
+      delete recordMapOfType[oldId];
+      return true;
     }
-    return values;
+    return false;
   }
 
   /** 
    * Change all sub-record ids (of sub-records) in this RecordNode 
    * Used for copy pasting record nodes - to ensure none of the subrecords end up having a duplicate id
    */
-  cycleAllSubRecordIds(): void {
+  cycleAllSubRecordIds(): {[oldId: number]: number} {
     const replacementMap: {[oldId: number]: number} = {};
     for(const [key, value] of this.getDeepRecordEntries()) {
       const oldId = Number(key);
       const newId = generateIdV2();
       replacementMap[oldId] = newId;
-      //Instead of going deeper, we write another for loop to recduce time complexity
-      // this.changeDeepRecordId(oldId, newId);
-      // this.changeDeepRecordIdInProperties(oldId, newId);
+      this.changeDeepRecordId(oldId, newId);
+      this.changeDeepRecordIdInProperties(oldId, newId);
     }
-    this.replaceAllSubRecordIds(replacementMap);
-    this.replaceAllSubRecordIdsInProperties(replacementMap);
+    return replacementMap;
   }
 
-  replaceAllSubRecordIds(replacementMap: {[oldId: number]: number}) {
-    const allPAndRs = RecordUtils.getDeepRecordAndParentArray(this._json, []);
-    for(const pAndR of allPAndRs) {
-      const {id, p, r} = pAndR;
-      const oldId = id;
-      //Change Record Id
-      if(oldId in replacementMap) {
-        const newId = replacementMap[id];
-        const type = r.type as RT;
-        const recordMapOfType = new RecordFactory(p).getRecordMap(type);
-        recordMapOfType[newId] = recordMapOfType[oldId];
-        delete recordMapOfType[oldId];
+  /**
+   * Adding ".order" key to the new entry - even if the record already had a .order, we will overwrite it
+   * potential value of respective orders: [4, 4.5, 4.75, 5, 8]
+   * newRecordsCount: the number of new records to enter
+   * meaning of "position" - the [gap] to insert into: [0] 0, [1] 1, [2] 2, [3] 3, [4] 4 [5]
+   * if this is the only record, order = 1
+   * if its inserted at [0], order = order of the first entry - 1
+   * if its inserted at [5], order = order of the last entry + 1 (default, when position is undefined)
+   * if its inserted at [x], order = ( order of [x - 1] entry + order of [x] entry ) / 2 
+   */
+  private getNewOrders(sortedRecords: RecordNode<T>[], newRecordsCount: number, position?: number): number[] {
+    this.ensureMinDistanceOfOrders(sortedRecords);
+    const order = [];
+    let minOrder = sortedRecords[0]?.order ?? 0;
+    let maxOrder = sortedRecords[sortedRecords.length - 1]?.order ?? 0;
+    if(sortedRecords.length === 0) { //return [1, 2, 3 ...] //these are the first records being inserted
+      for(let i=0; i<newRecordsCount; i++) {
+        order[i] = i+1;
+      }
+    } else if(position === 0) { //insert at beginning
+      for(let i=0; i<newRecordsCount; i++) {
+        minOrder = minOrder-1;
+        order[i] = minOrder;
+      }
+    } else if(position === sortedRecords.length || position === undefined) { //insert at end
+      for(let i=0; i<newRecordsCount; i++) {
+        maxOrder = maxOrder+1;
+        order[i] = maxOrder;
+      }
+    } else { //insert somewhere in the middle
+      const prevOrder = sortedRecords[position - 1].order ?? 0;
+      const nextOrder = sortedRecords[position].order ?? 0;
+      let segment = 0;
+      for(let i=0; i<newRecordsCount; i++) {
+        segment += 1;
+        order[i] = prevOrder + (nextOrder - prevOrder) / (newRecordsCount + 1) * segment;
       }
     }
+    return order;
   }
 
-  replaceAllSubRecordIdsInProperties(replacementMap: {[oldId: number]: number}) {
-    this.changeRecordIdInProperties(replacementMap);
-    const allPAndRs = RecordUtils.getDeepRecordAndParentArray(this._json, []);
-    for(const pAndR of allPAndRs) {
-      new RecordFactory(pAndR.r).changeRecordIdInProperties(replacementMap);
+  /** 
+   * In case the difference in order gets dangerously close the JS's Number.MIN_VALUE, reset orders
+   * The second argument is optional, and provided only for testing
+   */
+  private ensureMinDistanceOfOrders(sortedRecords: RecordNode<T>[], minSafeOrderDistanceOverride = MIN_SAFE_ORDER_DISTANCE): void {
+    //Applicable only if number of records > 2
+    if(sortedRecords.length <= 2) return;
+    //Get the minimum distance between two order - orders are sorted, so we always do a(n) - a(n-1)
+    for(let i=1; i<sortedRecords.length; i++) { //starting at index 1. n-1 subtractions.
+      //ensureOrderKeyPresentOfType is already called in getSortedEntries. So we are sure record(n).order always exists.
+      const currentDistance = <number>sortedRecords[i].order - <number>sortedRecords[i-1].order;
+      if(currentDistance < minSafeOrderDistanceOverride) {
+        let order = 1;
+        for(const r of sortedRecords) {
+          r.order = order++;
+        }
+        return;
+      }
     }
   }
 
@@ -643,14 +645,14 @@ export class RecordFactory<T extends RT> {
    * And all sub-ids in this new record. 
    * And make sure none overlap.
    */
-  addRecord <N extends RT>({record, position, id, dontCycleSubRecordIds, dontPosition, parentIdOrAddress}: {
-    record: RecordNode<N>, position?: number, id?: number, dontCycleSubRecordIds?: boolean, dontPosition?: boolean, parentIdOrAddress?: idOrAddress
+  addRecord <N extends RT>({record, position, id, dontCycleSubRecordIds, parentIdOrAddress}: {
+    record: RecordNode<N>, position?: number, id?: number, dontCycleSubRecordIds?: boolean, parentIdOrAddress?: idOrAddress
   }): idAndRecord<N> | undefined {
     //Call recursively until "this" refers to parent record, and parentIdOrAddress is undefined
     if(parentIdOrAddress !== undefined) {
       const parentRecord = this.getDeepRecord(parentIdOrAddress);
       if(parentRecord === undefined) return undefined;
-      return new RecordFactory(parentRecord).addRecord({record, position, id, dontCycleSubRecordIds, dontPosition});
+      return new RecordFactory(parentRecord).addRecord({record, position, id, dontCycleSubRecordIds});
     }
 
     //Should we add this record? Allow only record additions that conform to treeMap heirarchy
@@ -662,12 +664,8 @@ export class RecordFactory<T extends RT> {
 
     if(!this.initializeRecordMap(childType)) return undefined;
     const recordMap = this.getRecordMap(childType);
-
-    if(!dontPosition) {
-      const recordsArray = this.getSortedRecords(childType);
-      record.order = RecordUtils.getNewOrders(recordsArray, 1, position)[0];
-    }
-    
+    const recordsArray = this.getSortedRecords(childType);
+    record.order = this.getNewOrders(recordsArray, 1, position)[0];
     if(!dontCycleSubRecordIds) {
       //Cycle all ids in the new record being added so that there are no id clashes
       new RecordFactory(record).cycleAllSubRecordIds();
@@ -776,7 +774,7 @@ export class RecordFactory<T extends RT> {
    */
   reorderRecords(type: RT, ids: number[], position: number) {
     const sortedRecords = this.getSortedRecords(type);
-    const newOrders = RecordUtils.getNewOrders(sortedRecords, ids.length, position);
+    const newOrders = this.getNewOrders(sortedRecords, ids.length, position);
     const recordMap = this.getRecordMap(type);
     let n = 0;
     for(const id of ids) {
@@ -784,37 +782,19 @@ export class RecordFactory<T extends RT> {
     }
   }
 
-  /** 
-   * Keeps ids intact
-   * To check destPosition logic check reorderRecords
-   */
+  /** Keeps ids intact */
   moveDeepRecords(source: idOrAddress[], dest: idOrAddress, destPosition?: number): boolean {
-    const destRecord = this.getDeepRecord(dest);
-    if(destRecord === undefined) return false;
-
-    const sourceRAndPArray = source
-      .map(s => this.getRecordAndParent(s))
-      .filter(s => s !== undefined && isTypeChildOf(destRecord.type as RT, s.r.type as RT));
-    if(sourceRAndPArray === undefined || sourceRAndPArray.length === 0) return false;
-    const firstSourceRecord = sourceRAndPArray[0]?.r;
-    if(firstSourceRecord === undefined) return false;
-
-    //To decide order. Position 2 is between items 2 and 3 (at indices 1 and 2)
-    // * Input:     [  1,   2,   3,   4,   5,   6  ]
-    // * Positions: [0,   1,   2,   3,   4,   5,  6]
-    //This is different from reorder because here the destPosition is pre-deletion
-    const sortedRecords = new RecordFactory(destRecord).getSortedRecords(firstSourceRecord.type as RT);
-    const newOrders = RecordUtils.getNewOrders(sortedRecords, sourceRAndPArray.length, destPosition);
+    const sourceRAndPArray = source.map(s => this.getRecordAndParent(s));
+    const destRAndP = this.getRecordAndParent(dest);
+    if(sourceRAndPArray === undefined || destRAndP === undefined) return false;
 
     //Delete all sources:
-    let orderIndex = 0;
     const deletedIdAndRecords: idAndRecord<RT>[] = [];
     for(const sourceRAndP of (sourceRAndPArray as rAndP[])) {
       const parentRF = new RecordFactory(sourceRAndP.p);
       const deletedIdAndRecord = parentRF.deleteRecord(sourceRAndP.id, sourceRAndP.r.type as RT);
       if(deletedIdAndRecord !== undefined) {
         deletedIdAndRecords.push(deletedIdAndRecord);
-        deletedIdAndRecord.record.order = newOrders[orderIndex++];
       }
     }
 
@@ -827,7 +807,6 @@ export class RecordFactory<T extends RT> {
         id: idAndRecord.id, 
         position: destPosition, 
         dontCycleSubRecordIds: true,
-        dontPosition: true,
         parentIdOrAddress: dest,
       })
     }
@@ -836,13 +815,9 @@ export class RecordFactory<T extends RT> {
 
   /** Changes ids */
   copyDeepRecords(source: idOrAddress[], dest: idOrAddress, destPosition?: number): boolean {
-    const destRecord = this.getDeepRecord(dest);
-    if(destRecord === undefined) return false;
-
-    const sourceRAndPArray = source
-      .map(s => this.getRecordAndParent(s))
-      .filter(s => s !== undefined && isTypeChildOf(destRecord.type as RT, s.r.type as RT));
-    if(sourceRAndPArray === undefined || sourceRAndPArray.length === 0) return false;
+    const sourceRAndPArray = source.map(s => this.getRecordAndParent(s));
+    const destRAndP = this.getRecordAndParent(dest);
+    if(sourceRAndPArray === undefined || destRAndP === undefined) return false;
 
     //Inserted in reverse order because we keep inserting in the same position.
     //If we don't reverse, a,b,c will get inserted into 1,2,3 as 1,2,3,c,b,a
@@ -920,15 +895,6 @@ export class RecordUtils {
     return entriesArray.map(nodeEntry => nodeEntry[1]);
   }
 
-  static getDeepRecordAndParentArray(record: RecordNode<RT>, rAndPArray: rAndP[]): rAndP[] {
-    for(const [id, r] of new RecordFactory(record).getRecordEntries()) {
-      const rAndP: rAndP = {id, p: record, r};
-      rAndPArray.push(rAndP);
-      this.getDeepRecordAndParentArray(r, rAndPArray);
-    }
-    return rAndPArray;
-  }
-
   /**
    * Ensures that all records of a given type have the ".order" key in them. 
    * This function finds the max order, and increments the order by 1 for each new entry
@@ -955,68 +921,6 @@ export class RecordUtils {
         //create an order key in the record if it doesn't exist
         v.order = maxOrder + 1;
         maxOrder++;
-      }
-    }
-  }
-
-  /**
-   * Adding ".order" key to the new entry - even if the record already had a .order, we will overwrite it
-   * potential value of respective orders: [4, 4.5, 4.75, 5, 8]
-   * newRecordsCount: the number of new records to enter
-   * meaning of "position" - the [gap] to insert into: [0] 0, [1] 1, [2] 2, [3] 3, [4] 4 [5]
-   * if this is the only record, order = 1
-   * if its inserted at [0], order = order of the first entry - 1
-   * if its inserted at [5], order = order of the last entry + 1 (default, when position is undefined)
-   * if its inserted at [x], order = ( order of [x - 1] entry + order of [x] entry ) / 2 
-   */
-  static getNewOrders(sortedRecords: RecordNode<RT>[], newRecordsCount: number, position?: number): number[] {
-    RecordUtils.ensureMinDistanceOfOrders(sortedRecords);
-    const order = [];
-    let minOrder = sortedRecords[0]?.order ?? 0;
-    let maxOrder = sortedRecords[sortedRecords.length - 1]?.order ?? 0;
-    if(sortedRecords.length === 0) { //return [1, 2, 3 ...] //these are the first records being inserted
-      for(let i=0; i<newRecordsCount; i++) {
-        order[i] = i+1;
-      }
-    } else if(position === 0) { //insert at beginning
-      for(let i=0; i<newRecordsCount; i++) {
-        minOrder = minOrder-1;
-        order[i] = minOrder;
-      }
-    } else if(position === sortedRecords.length || position === undefined) { //insert at end
-      for(let i=0; i<newRecordsCount; i++) {
-        maxOrder = maxOrder+1;
-        order[i] = maxOrder;
-      }
-    } else { //insert somewhere in the middle
-      const prevOrder = sortedRecords[position - 1].order ?? 0;
-      const nextOrder = sortedRecords[position].order ?? 0;
-      let segment = 0;
-      for(let i=0; i<newRecordsCount; i++) {
-        segment += 1;
-        order[i] = prevOrder + (nextOrder - prevOrder) / (newRecordsCount + 1) * segment;
-      }
-    }
-    return order;
-  }
-
-  /** 
-   * In case the difference in order gets dangerously close the JS's Number.MIN_VALUE, reset orders
-   * The second argument is optional, and provided only for testing
-   */
-  private static ensureMinDistanceOfOrders(sortedRecords: RecordNode<RT>[], minSafeOrderDistanceOverride = MIN_SAFE_ORDER_DISTANCE): void {
-    //Applicable only if number of records > 2
-    if(sortedRecords.length <= 2) return;
-    //Get the minimum distance between two order - orders are sorted, so we always do a(n) - a(n-1)
-    for(let i=1; i<sortedRecords.length; i++) { //starting at index 1. n-1 subtractions.
-      //ensureOrderKeyPresentOfType is already called in getSortedEntries. So we are sure record(n).order always exists.
-      const currentDistance = <number>sortedRecords[i].order - <number>sortedRecords[i-1].order;
-      if(currentDistance < minSafeOrderDistanceOverride) {
-        let order = 1;
-        for(const r of sortedRecords) {
-          r.order = order++;
-        }
-        return;
       }
     }
   }

@@ -4,6 +4,8 @@ import { ReplacementMapProperty, replacementMapPropertyDefaults } from "../recor
 import { QueryProperty, queryPropertyDefaults } from "../recordTypes/Query";
 import { GameProperty, gamePropertyDefaults } from "../recordTypes/Game";
 import { CharacterProperty, characterPropertyDefaults } from "../recordTypes/Character";
+import { LearningChunkProperty, learningChunkPropertyDefaults } from "../recordTypes/LearningChunk";
+import { BrainProperty, brainPropertyDefaults } from "../recordTypes/Brain";
 
 //https://stackoverflow.com/a/54178819/1233476
 // type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
@@ -18,7 +20,9 @@ export enum RT {
   "query" = "query",
   "replacement_map" = "replacement_map",
   "game" = "game",
-  "character" = "character"
+  "character" = "character",
+  "brain" ="brain",
+  "learning_chunk" = "learning_chunk"
 }
 
 /**
@@ -34,9 +38,13 @@ export const rtHeirarchyTree = {
     "form": {},
     "query": {},
     "replacement_map": {},
-    "game": {},
     "character": {}
   },
+  "brain": {
+    "learning_chunk": {
+      "game": {}
+    }
+  }
 }
 
 /**
@@ -48,8 +56,11 @@ export interface RTP {
   [RT.form]: FormProperty,
   [RT.query]: QueryProperty,
   [RT.replacement_map]: ReplacementMapProperty,
-  [RT.game]: GameProperty,
   [RT.character]: CharacterProperty,
+  
+  [RT.brain]: BrainProperty,
+  [RT.learning_chunk]: LearningChunkProperty,
+  [RT.game]: GameProperty,
 }
 
 /**
@@ -61,8 +72,11 @@ export const rtp = {
   [RT.form]: FormProperty,
   [RT.query]: QueryProperty,
   [RT.replacement_map]: ReplacementMapProperty,
+  [RT.character]: CharacterProperty,
+  
+  [RT.brain]: BrainProperty,
+  [RT.learning_chunk]: LearningChunkProperty,
   [RT.game]: GameProperty,
-  [RT.character]: CharacterProperty
 }
 
 /**
@@ -107,16 +121,28 @@ export const recordTypeDefinitions: Record<RT, RTDefinition> = {
     defaultValues: replacementMapPropertyDefaults
     //doesn't use name, so not defining defaultName
   },
-  [RT.game]: {
-    treeRef: rtHeirarchyTree.strategy.game,
-    typesInRootPath: [RT.game],
-    defaultValues: gamePropertyDefaults
-    //doesn't use name, so not defining defaultName
-  },
   [RT.character]: {
     treeRef: rtHeirarchyTree.strategy.character,
     typesInRootPath: [RT.character],
     defaultValues: characterPropertyDefaults
+    //doesn't use name, so not defining defaultName
+  },
+  [RT.brain]: {
+    treeRef: rtHeirarchyTree.brain,
+    typesInRootPath: [],
+    defaultValues: brainPropertyDefaults
+    //doesn't use name, so not defining defaultName
+  },
+  [RT.learning_chunk]: {
+    treeRef: rtHeirarchyTree.brain.learning_chunk,
+    typesInRootPath: [RT.brain],
+    defaultValues: learningChunkPropertyDefaults
+    //doesn't use name, so not defining defaultName
+  },
+  [RT.game]: {
+    treeRef: rtHeirarchyTree.brain.learning_chunk.game,
+    typesInRootPath: [RT.brain,RT.learning_chunk],
+    defaultValues: gamePropertyDefaults
     //doesn't use name, so not defining defaultName
   },
 }

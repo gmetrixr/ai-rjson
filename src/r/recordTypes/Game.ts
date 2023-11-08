@@ -4,7 +4,7 @@ export enum GameProperty {
   input = "input",
 }
 
-export const gamePropertyDefaults:  Record<GameProperty, unknown> = {
+export const gamePropertyDefaults: Record<GameProperty, unknown> = {
   [GameProperty.name]: "",
   [GameProperty.input]: [],
 };

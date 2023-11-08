@@ -7,6 +7,7 @@ import { ai } from "./definitions";
 const r = {
   "record":   <T extends RT>(json: RecordNode<T>): R.RecordFactory<T> => new R.RecordFactory(json),
   "strategy":  (json: RecordNode<RT.strategy>): RF.StrategyFactory => new RF.StrategyFactory(json),
+  "brain":  (json: RecordNode<RT.brain>): RF.BrainFactory => new RF.BrainFactory(json),
 }
 
 const rUtils = {

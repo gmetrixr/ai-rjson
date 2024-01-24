@@ -10,6 +10,7 @@ const learnableChunks = [
   {
     context: `Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum`,
     title: "Learning chunk title",
+    description: "Learning chunk Description",
     game: [
       {
         name: "Game 1",
@@ -272,6 +273,7 @@ describe("r Migration tests", () => {
     const brainF = r.brain(brain);
     // add title of the full context
     brainF.set(rtp.brain.title, "title");
+    brainF.set(rtp.brain.description, "Description");
 
     for (const learnableChunk of learnableChunks) {
       const chunk = createRecord(RT.learning_chunk);
@@ -279,6 +281,8 @@ describe("r Migration tests", () => {
       chunkF.set(rtp.learning_chunk.context, learnableChunk.context);
        // add title of the current learning chunk
       chunkF.set(rtp.learning_chunk.title, learnableChunk.title);
+       // add title of the current learning chunk
+       chunkF.set(rtp.learning_chunk.description, learnableChunk.description);
 
       for (const game of learnableChunk.game) {
         const gameR = createRecord(RT.game);

@@ -1,6 +1,6 @@
 export enum BrainProperty {
   version = "version",
-  title = 'title' // title of the full context
+  title = "title" // title of the full context
 }
 
 export const brainPropertyDefaults: Record<BrainProperty, unknown> = {

@@ -281,7 +281,7 @@ describe("r Migration tests", () => {
       chunkF.set(rtp.learning_chunk.context, learnableChunk.context);
        // add title of the current learning chunk
       chunkF.set(rtp.learning_chunk.title, learnableChunk.title);
-       // add title of the current learning chunk
+       // add description of the current learning chunk
        chunkF.set(rtp.learning_chunk.description, learnableChunk.description);
 
       for (const game of learnableChunk.game) {

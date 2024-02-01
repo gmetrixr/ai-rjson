@@ -12,6 +12,7 @@
   "rules": {
     "quotes": ["error", "double", { "allowTemplateLiterals": true }],
     "@typescript-eslint/no-empty-interface": "warn",
-    "@typescript-eslint/ban-ts-comment": "off"
+    "@typescript-eslint/ban-ts-comment": "off",
+    "@typescript-eslint/no-explicit-any": "off"
   }
 }

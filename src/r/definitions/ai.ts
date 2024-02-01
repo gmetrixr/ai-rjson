@@ -13,7 +13,8 @@ export enum DocumentTypes {
   mp3 = "mp3",
 }
 
-export enum Games {
-  word_puzzle = "word_puzzle",
-  squid_games = "squid_games"
+export enum GameCategory {
+  learning = "learning",
+  team_building = "team_building",
+  wellness = "wellness",
 }

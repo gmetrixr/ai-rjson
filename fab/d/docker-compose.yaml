@@ -21,4 +21,5 @@ services:
 
 networks:
   default:
-    name: teaxr
+    external:
+      name: teaxr

@@ -12,9 +12,3 @@ export enum DocumentTypes {
   jpg = "jpg",
   mp3 = "mp3",
 }
-
-export enum GameCategory {
-  learning = "learning",
-  team_building = "team_building",
-  wellness = "wellness",
-}

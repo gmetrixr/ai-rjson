@@ -6,6 +6,7 @@ import { GameProperty, gamePropertyDefaults } from "../recordTypes/Game";
 import { CharacterProperty, characterPropertyDefaults } from "../recordTypes/Character";
 import { LearningChunkProperty, learningChunkPropertyDefaults } from "../recordTypes/LearningChunk";
 import { BrainProperty, brainPropertyDefaults } from "../recordTypes/Brain";
+import { ConceptProperty, conceptPropertyDefaults } from "../recordTypes/Concept";
 
 //https://stackoverflow.com/a/54178819/1233476
 // type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
@@ -22,7 +23,8 @@ export enum RT {
   "game" = "game",
   "character" = "character",
   "brain" ="brain",
-  "learning_chunk" = "learning_chunk"
+  "learning_chunk" = "learning_chunk",
+  "concept" = "concept",
 }
 
 /**
@@ -41,6 +43,15 @@ export const rtHeirarchyTree = {
     "character": {}
   },
   "brain": {
+    "concept": {
+      "concept": {
+        "concept": {
+          "game": {}
+        },
+        "game": {}
+      },
+      "game": {}
+    },
     "learning_chunk": {
       "game": {}
     }
@@ -61,6 +72,7 @@ export interface RTP {
   [RT.brain]: BrainProperty,
   [RT.learning_chunk]: LearningChunkProperty,
   [RT.game]: GameProperty,
+  [RT.concept]: ConceptProperty,
 }
 
 /**
@@ -77,6 +89,7 @@ export const rtp = {
   [RT.brain]: BrainProperty,
   [RT.learning_chunk]: LearningChunkProperty,
   [RT.game]: GameProperty,
+  [RT.concept]: ConceptProperty,
 }
 
 /**
@@ -141,8 +154,14 @@ export const recordTypeDefinitions: Record<RT, RTDefinition> = {
   },
   [RT.game]: {
     treeRef: rtHeirarchyTree.brain.learning_chunk.game,
-    typesInRootPath: [RT.brain,RT.learning_chunk],
+    typesInRootPath: [RT.brain,RT.learning_chunk, RT.concept],
     defaultValues: gamePropertyDefaults
+    //doesn't use name, so not defining defaultName
+  },
+  [RT.concept]: {
+    treeRef: rtHeirarchyTree.brain.concept.concept,
+    typesInRootPath: [RT.brain,RT.concept],
+    defaultValues: conceptPropertyDefaults
     //doesn't use name, so not defining defaultName
   },
 }

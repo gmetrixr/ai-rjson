@@ -4,6 +4,8 @@ import { createNewBrain } from "../../src/migrations/brain";
 import { createRecord, RT, rtp } from "../../src/r/R";
 import { r } from "../../src/r";
 import { StrategyFactory } from "../../src/r/recordFactories";
+import { migrations } from "../../src";
+import * as fs from "fs";
 
 
 const learnableChunks = [
@@ -295,6 +297,39 @@ describe("r Migration tests", () => {
 
       brainF.addRecord({ record: chunk });
     }
-    console.log(JSON.stringify(brain));
   });
+});
+
+describe("create a concept tree json", () => {
+  const brainJson = migrations.createNewBrain();
+  const bf = r.brain(brainJson);
+  const l1Concept = bf.addBlankRecord({ type: RT.concept });
+  if(l1Concept) {
+    const l1cF = r.record(l1Concept.record);
+    l1cF.set(rtp.concept.title, "title 1");
+    l1cF.set(rtp.concept.content, "content 1");
+    const l2Concept = l1cF.addBlankRecord({ type: RT.concept });
+    l1cF.addBlankRecord({ type: RT.game });
+
+    if(l2Concept) {
+      const l2cF = r.record(l2Concept.record);
+      l2cF.set(rtp.concept.title, "title 2");
+      l2cF.set(rtp.concept.content, "content 2");
+
+      const l3Concept = l2cF.addBlankRecord({ type: RT.concept });
+      l2cF.addBlankRecord({ type: RT.game });
+
+      if(l3Concept) {
+        const l3cF = r.record(l3Concept.record);
+        l3cF.set(rtp.concept.title, "title 3");
+        l3cF.set(rtp.concept.content, "content 3");
+        l3cF.addBlankRecord({ type: RT.game });
+      }
+    }
+  }
+
+  // const allConcepts = bf.getDeepRecordEntries(RT.concept);
+
+  // fs.writeFileSync("brainConcept.json", JSON.stringify(brainJson), { encoding: "utf-8" });
+  // fs.writeFileSync("allConcepts.json", JSON.stringify(allConcepts), { encoding: "utf-8" });
 });

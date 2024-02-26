@@ -1,7 +1,8 @@
-import { recordTypeDefinitions, RT, RTP } from "./RecordTypes";
+import type { RTP } from "./RecordTypes";
+import { recordTypeDefinitions, RT } from "./RecordTypes";
 
 export interface RecordNode<T extends RT> {
-  /** 
+  /**
    * To tell us which factory method can be used to process this json.
    * Allows strings too to directly accept jsons (else jsons give this error: "Type 'string' is not assignable to type 'RecordType.project'")
    */
@@ -39,7 +40,9 @@ export const createRecord = <T extends RT>(type: T, name?: string) :RecordNode<T
 export type rAndP = {id: number, r: RecordNode<RT>, p: RecordNode<RT> };
 export type idAndRecord<N extends RT> = {id: number, record: RecordNode<N>};
 export type idOrAddress = number | string;
+export type RecordEntry<N extends RT> = [number, RecordNode<N>];
 /** clipboard contains the strigified version of this */
 export interface ClipboardData {
   nodes: idAndRecord<RT>[]
 }
+

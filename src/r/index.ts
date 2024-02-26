@@ -1,6 +1,6 @@
 import * as R from "./R";
 import { RecordNode, RecordMap, RT, RTP, rtp, createRecord, ClipboardData, idAndRecord } from "./R";
-import { RecordUtils } from "./R/RecordFactory";
+import { RecordUtils } from "./R/RecordUtils";
 import * as RF from "./recordFactories";
 import { ai } from "./definitions";
 

@@ -43,6 +43,7 @@ export const rtHeirarchyTree = {
     "character": {}
   },
   "brain": {
+    "game": {},
     "concept": {
       "concept": {
         "concept": {
